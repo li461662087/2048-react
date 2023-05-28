@@ -1,1 +1,0 @@
-export const increment = data => ({type: "increment", data})

@@ -1,8 +1,8 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import './app.css'
+import move from "./unilt/move";
 
 function App() {
-    const divRef = useRef()
     const initMatrix = [
         [0, 0, 0, 0],
         [0, 0, 0, 0],
@@ -50,10 +50,45 @@ function App() {
             // 判断X轴移动的距离是否大于Y轴移动的距离
             if (Math.abs(moveDistanceX) > Math.abs(moveDistanceY)) {
                 // 左右
-                return moveDistanceX > 0 ? move(matrix, 'left') : move(matrix, 'right')
-            } else {
+                if (moveDistanceX > 0){
+                    const {reScore,
+                        reBestScore,
+                        reNewNumberIndex,
+                        reIsShow,
+                        reMatrix,
+                        reMergeNumberIndex} = move(matrix, 'left',score,bestScore,newNumberIndex)
+                    respond(reScore, reBestScore, reNewNumberIndex, reIsShow, reMatrix, reMergeNumberIndex)
+                }
+                else{
+                    const {reScore,
+                        reBestScore,
+                        reNewNumberIndex,
+                        reIsShow,
+                        reMatrix,
+                        reMergeNumberIndex} = move(matrix, 'right',score,bestScore,newNumberIndex)
+                    respond(reScore, reBestScore, reNewNumberIndex, reIsShow, reMatrix, reMergeNumberIndex)
+                }
+            }
+            else {
                 // 上下
-                return moveDistanceX > 0 ? move(matrix, 'down') : move(matrix, 'up')
+                if (moveDistanceY > 0){
+                    const {reScore,
+                        reBestScore,
+                        reNewNumberIndex,
+                        reIsShow,
+                        reMatrix,
+                        reMergeNumberIndex} = move(matrix, 'up',score,bestScore,newNumberIndex)
+                    respond(reScore, reBestScore, reNewNumberIndex, reIsShow, reMatrix, reMergeNumberIndex)
+                }
+                else{
+                    const {reScore,
+                        reBestScore,
+                        reNewNumberIndex,
+                        reIsShow,
+                        reMatrix,
+                        reMergeNumberIndex} = move(matrix, 'down',score,bestScore,newNumberIndex)
+                    respond(reScore, reBestScore, reNewNumberIndex, reIsShow, reMatrix, reMergeNumberIndex)
+                }
             }
         }
     }
@@ -106,197 +141,49 @@ function App() {
     })
     function handleKeyDown(e){
       if (e.keyCode === 37){
-          move(matrix, 'left')
+          const {reScore,
+              reBestScore,
+              reNewNumberIndex,
+              reIsShow,
+              reMatrix,
+              reMergeNumberIndex} = move(matrix, 'left',score,bestScore,newNumberIndex)
+          respond(reScore, reBestScore, reNewNumberIndex, reIsShow, reMatrix, reMergeNumberIndex)
       }
       else if(e.keyCode === 38){
-          move(matrix, 'up')
+          const {reScore,
+              reBestScore,
+              reNewNumberIndex,
+              reIsShow,
+              reMatrix,
+              reMergeNumberIndex} = move(matrix, 'up',score,bestScore,newNumberIndex)
+          respond(reScore, reBestScore, reNewNumberIndex, reIsShow, reMatrix, reMergeNumberIndex)
       }
       else if(e.keyCode === 39){
-          move(matrix, 'right')
+          const {reScore,
+              reBestScore,
+              reNewNumberIndex,
+              reIsShow,
+              reMatrix,
+              reMergeNumberIndex} = move(matrix, 'right',score,bestScore,newNumberIndex)
+          respond(reScore, reBestScore, reNewNumberIndex, reIsShow, reMatrix, reMergeNumberIndex)
       }
       else if(e.keyCode === 40){
-          move(matrix, 'down')
+          const {reScore,
+              reBestScore,
+              reNewNumberIndex,
+              reIsShow,
+              reMatrix,
+              reMergeNumberIndex} = move(matrix, 'down',score,bestScore,newNumberIndex)
+          respond(reScore, reBestScore, reNewNumberIndex, reIsShow, reMatrix, reMergeNumberIndex)
       }
     }
-    function move(matrix, direction){
-      const rows = matrix.length;
-      const cols = matrix[0].length;
-      let mergeIndexList = []
-
-      function _inRange(i, j){
-          return matrix[i] && matrix[i][j] !== undefined;
-      }
-      const next = {
-          up: (i, j)=> [i + 1, j],
-          down: (i, j)=> [i - 1, j],
-          left: (i, j)=> [i, j + 1],
-          right: (i, j)=> [i, j - 1]
-      }
-      function _getNextNotZeroValue(i, j){
-          let [nextI, nextJ] = next[direction](i, j)
-          while(_inRange(nextI, nextJ)){
-              const nextValue = matrix[nextI][nextJ]
-              if (nextValue){
-                  return [nextI, nextJ, nextValue]
-              }
-              else{
-                  [nextI, nextJ] = next[direction](nextI, nextJ)
-              }
-          }
-      }
-
-      function _cal(i, j){
-          if(!_inRange(i, j)){
-              return;
-          }
-          //计算出这个位置的值
-          const result = _getNextNotZeroValue(i, j)
-          if (!result){
-              return;
-          }
-          const [nextI, nextJ, nextValue] = result;
-          if(matrix[i][j] === 0){
-              matrix[i][j] = nextValue;
-              matrix[nextI][nextJ] = 0
-              _cal(i, j)
-          }else  if(matrix[i][j] === nextValue){
-              matrix[i][j] += nextValue
-              //记录当前最大值
-              if (matrix[i][j] > score){
-                  setScore(matrix[i][j])
-
-              }
-              if (matrix[i][j] > bestScore){
-                  setBestScore(matrix[i][j])
-              }
-              matrix[nextI][nextJ] = 0
-              mergeIndexList = [...mergeIndexList,[i,j]]
-          }
-          //计算下一个位置的值
-          _cal(...next[direction](i, j))
-      }
-
-      if (direction === 'up'){
-          for (let j = 0; j < cols; j++) {
-              _cal(0, j)
-          }
-      }
-      else if (direction === 'down'){
-          for (let j = 0; j < cols; j++) {
-              _cal(rows - 1, j)
-          }
-      }
-      else if (direction === 'left'){
-          for (let i = 0; i < rows; i++) {
-              _cal(i, 0)
-          }
-      }else{
-          for (let i = 0; i < rows; i++) {
-              _cal(i, rows - 1)
-          }
-      }
-
-      function _newNumber(newNumberIndex){
-          if (_isFull(matrix)){
-              //随机生成数字
-              const row = Math.floor(Math.random()*4);
-              const col = Math.floor(Math.random()*4);
-              if (matrix[row][col] === 0){
-                  matrix[row][col] = 2
-                  setNewNumberIndex([row,col])
-              }
-              else{
-                  _newNumber(newNumberIndex)
-              }
-          }else{
-              isOver()
-          }
-          //判断是否没位置了
-          function _isFull(matrix){
-              for(let i=0; i<matrix.length; i++){
-                  for (let j=0; j<matrix.length; j++){
-                      if (matrix[i][j] === 0){
-                          return true
-                      }
-                  }
-              }
-              return false
-          }
-          function isOver(){
-              const row = matrix.length
-              const col = matrix[0].length
-
-              let time = 0
-
-              for (let i=0; i<row; i++){
-                  for (let j=0; j<col; j++){
-                      if (matrix[i][j] === 0){
-                          return
-                      }else{
-                          if(_findAround(i, j)){
-                              time++
-                          }else{
-                              return;
-                          }
-                      }
-                  }
-              }
-              function _findAround(i,j){
-                  let flag = 4
-                  let result = 0
-                  if (!_isRange(i, j+1)){
-                      flag--
-                  }
-                  if(!_isRange(i, j-1)){
-                      flag--
-                  }
-                  if (!_isRange(i-1, j)){
-                      flag--
-                  }
-                  if (!_isRange(i+1, j)){
-                      flag--
-                  }
-
-
-                  if (_isRange(i, j+1) && _isSame([i,j], [i,j+1])){
-                      result++
-                  }
-                  if(_isRange(i, j-1) && _isSame([i,j], [i,j-1])){
-                      result++
-                  }
-                  if(_isRange(i+1, j) && _isSame([i,j], [i+1,j])){
-                      result++
-                  }
-                  if(_isRange(i-1, j) && _isSame([i,j], [i-1,j])){
-                      result++
-                  }
-
-                  if (flag === result){
-                      return true
-                  }
-                  else{
-                      return false
-                  }
-                  function _isRange(i, j){
-                      return matrix[i] && matrix[i][j] !== undefined;
-                  }
-                  function _isSame(pre,next){
-                      if(matrix[next[0]][next[1]] !== 0 && matrix[next[0]][next[1]] !== matrix[pre[0]][pre[1]]){
-                          return true
-                      }else{
-                          return false
-                      }
-                  }
-              }
-
-              if (time === row*col){
-                  setIsShow(true)
-              }
-          }
-      }
-        _newNumber(newNumberIndex)
-        setMatrix([...matrix])
-        setMergeNumberIndex([...mergeIndexList])
+    function respond(reScore, reBestScore, reNewNumberIndex, reIsShow, reMatrix, reMergeNumberIndex){
+        setScore(reScore)
+        setBestScore(reBestScore)
+        setMatrix(reMatrix)
+        setNewNumberIndex(reNewNumberIndex)
+        setIsShow(reIsShow)
+        setMergeNumberIndex(reMergeNumberIndex)
     }
 
     //格子定位获取
@@ -364,9 +251,6 @@ function App() {
         setIsShow(false)
         setScore(0)
     }
-
-
-
 
   return (
     <div className="main" onKeyDown={(e)=>handleKeyDown(e)}>
